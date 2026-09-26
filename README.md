@@ -39,3 +39,6 @@ O sucesso do assistente sera medido por:
 
 ## Passo 6: Pitch
 O problema atual e que clientes demoram para conseguir falar com um humano em casos de fraude, e os primeiros minutos sao cruciais para recuperar o dinheiro. A solucao e o SegurIA: um assistente inteligente e imediato. O valor gerado e a reducao de prejuizos financeiros para o cliente e para o banco, alem de aumentar a confianca na instituicao.
+
+**Assista ao vídeo de apresentação (Pitch):**
+[Link para o vídeo no YouTube](COLE_AQUI_O_LINK_DO_SEU_VIDEO)
