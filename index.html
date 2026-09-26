@@ -225,8 +225,8 @@
     </div>
 
     <script>
-        // Não precisamos de Chave de API! O sistema funciona de forma simulada.
-        const API_KEY = "SIMULADO";
+        // 1. COLE A SUA CHAVE DE API DO GOOGLE AQUI DENTRO DAS ASPAS
+        const API_KEY = "COLE_SUA_CHAVE_AQUI";
 
         const systemInstruction = `Atue como um especialista em segurança bancária. 
 Sua tarefa é acalmar o cliente e dar instruções claras sobre como agir em caso de fraude.
@@ -246,28 +246,56 @@ Baseie-se apenas nestas diretrizes:
             addMessage(message, 'user');
             inputField.value = '';
             
+            if(API_KEY === "COLE_SUA_CHAVE_AQUI" || API_KEY === "SIMULADO") {
+                setTimeout(() => addMessage("⚠️ ERRO: Cole a sua Chave de API de verdade lá na linha 229!", 'ai'), 500);
+                return;
+            }
+
             document.getElementById('typing-indicator').classList.add('active');
 
-            // Simulando a resposta para evitar os erros de senha do Google
-            setTimeout(() => {
+            try {
+                // Preparando o histórico para a API do Gemini
+                const contents = chatHistory.map(msg => ({
+                    role: msg.role,
+                    parts: [{ text: msg.text }]
+                }));
+                
+                contents.push({ role: "user", parts: [{ text: message }] });
+
+                const fetchUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${API_KEY}`;
+                const cabecalhos = { 'Content-Type': 'application/json' };
+
+                // Chamando a API de verdade!
+                const response = await fetch(fetchUrl, {
+                    method: 'POST',
+                    headers: cabecalhos,
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: systemInstruction }] },
+                        contents: contents
+                    })
+                });
+
+                const data = await response.json();
                 document.getElementById('typing-indicator').classList.remove('active');
-                
-                let aiReply = "";
-                const msgLower = message.toLowerCase();
-                
-                if (msgLower.includes("clona") || msgLower.includes("cartão") || msgLower.includes("cartao")) {
-                    aiReply = "Entendo a sua preocupação e estou aqui para ajudar! A primeira coisa a fazer é **bloquear o seu cartão imediatamente** pelo aplicativo do banco.\n\nDepois disso, acesse a área de contestações no app para relatar as compras que você não reconhece. Fique calmo, não solicitaremos sua senha em nenhum momento.";
-                } else if (msgLower.includes("pix") || msgLower.includes("golpe")) {
-                    aiReply = "Para casos de golpe do Pix, é muito importante agir rápido. Entre em contato urgente com o nosso chat de atendimento para tentarmos o **bloqueio cautelar (MED)**.\n\nRecomendo fortemente que você também registre um Boletim de Ocorrência (B.O.).";
-                } else {
-                    aiReply = "Compreendo. Como especialista em segurança, oriento que você nunca clique em links suspeitos ou compartilhe suas senhas. Se houver alguma movimentação estranha, bloqueie sua conta pelo aplicativo imediatamente.";
+
+                if (data.error) {
+                    addMessage("Ops, ocorreu um erro na IA: " + data.error.message, 'ai');
+                    console.error(data.error);
+                    return;
                 }
+
+                const aiReply = data.candidates[0].content.parts[0].text;
                 
                 chatHistory.push({ role: "user", text: message });
                 chatHistory.push({ role: "model", text: aiReply });
 
                 addMessage(aiReply, 'ai');
-            }, 2000);
+
+            } catch (error) {
+                document.getElementById('typing-indicator').classList.remove('active');
+                addMessage("Erro na conexão com a internet.", 'ai');
+                console.error(error);
+            }
         }
 
         function addMessage(text, sender) {
